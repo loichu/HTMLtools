@@ -36,27 +36,24 @@ function CheckMultipleChoice_Bckp($name, $value, &$errors, $required = false, &$
     return $text;
 }
 
-function CheckMultipleChoice($name, $value, &$errors, $required = false, &$error, $values) {
-    
-}
 
-/*function CheckCheckbox($name, $value, &$errors, $required = false, &$error, $values, $chkName) {
-    foreach ($value as $index => $value) {
-        if ((str_replace(" ", "", $value)) != "" && array_key_exists($value, $values)) {
-            $errors[$_SESSION[$chkName]] = "";
-            $checked[$index] = $value;
-        }
-    }
-    if (empty($checked)) {
-        if ($required) {
-            $errors[$_SESSION[$chkName]] = "You can't leave it empty";
-            $error = true;
-        }
-    }
-    return $checked;
-}*/
+/* function CheckCheckbox($name, $value, &$errors, $required = false, &$error, $values, $chkName) {
+  foreach ($value as $index => $value) {
+  if ((str_replace(" ", "", $value)) != "" && array_key_exists($value, $values)) {
+  $errors[$_SESSION[$chkName]] = "";
+  $checked[$index] = $value;
+  }
+  }
+  if (empty($checked)) {
+  if ($required) {
+  $errors[$_SESSION[$chkName]] = "You can't leave it empty";
+  $error = true;
+  }
+  }
+  return $checked;
+  } */
 
-function CheckCheckbox($formName, $frmEntry, $frmCaracteristic, $post) {
+function CheckCheckbox($formName, $frmEntry, $post) {
     // initialise le tableau des erreurs
     $_SESSION['forms'][$formName][$frmEntry]['errors'] = array();
     // Probleme de checkbox, le nom à des [] mais pas le post !!!
@@ -79,58 +76,77 @@ function CheckCheckbox($formName, $frmEntry, $frmCaracteristic, $post) {
     }
 }
 
-/*$_SESSION['form'] = array();
-$checkboxName = $_SESSION[$chkName] . "[]" ;
-*/
+function CheckMultipleChoice($formName, $frmEntry, $post) {
+    // initialise le tableau des erreurs
+    $_SESSION['forms'][$formName][$frmEntry]['errors'] = array();
+    $_SESSION['forms'][$formName][$frmEntry]['posted_data'] = array();
+    $_SESSION['forms'][$formName][$frmEntry]['posted_data'] = $post[$frmEntry];
+
+    // check that posted values are set
+    if (count($post[$frmEntry])) {
+        if (!array_key_exists($value, $_SESSION['forms'][$formName][$frmEntry]['values'])) {
+            $_SESSION['forms'][$formName][$frmEntry]['errors'][] = "This value doesn't exists !";
+        } else {
+            $_SESSION['forms'][$formName][$frmEntry]['is_selected'][] = $value;
+        }
+    }
+    if (!count($post[$frmEntry]) && $_SESSION['forms'][$formName][$frmEntry]['is_required']) {
+        $_SESSION['forms'][$formName][$frmEntry]['errors'][] = "Please select a value for " . strtolower($_SESSION['forms'][$formName][$frmEntry]['label'] . "...");
+    }
+}
+
+/* $_SESSION['form'] = array();
+  $checkboxName = $_SESSION[$chkName] . "[]" ;
+ */
 foreach ($_SESSION['forms'] as $formName => $formEntry) {
     foreach ($formEntry as $frmEntry => $frmEntryValues) {
         echo "<pre>";
-            print $frmEntry;
-            print_r($frmEntryValues);
+        print $frmEntry;
+        print_r($frmEntryValues);
         echo "</pre>";
 
         switch ($frmEntryValues['type']) {
-        case 'checkbox':
-            CheckCheckbox($formName, $frmEntry, $frmEntryValues, $_POST);
-            break;
-        case 'radio':
-            
-        default:
-            echo "Je ne connais pas (encore) ce type de champs";
-            break;
+            case 'checkbox':
+                CheckCheckbox($formName, $frmEntry, $_POST);
+                break;
+            case 'radio':
+                CheckMultipleChoice($formName, $frmEntry, $_POST);
+                break;
+            case 'select':
+                CheckMultipleChoice($formName, $frmEntry, $_POST);
+            default:
+                echo "Je ne connais pas (encore) ce type de champs";
+                break;
+        }
     }
-
-
-    }
-
 }
 /*
-foreach ($_POST as $name => $value) {
-    //echo"HELLO!";
-    //debug($_POST, "POST:");
-    //debug($_SESSION, "SESSION:");
-    if ($_SESSION['formTypes'][$name] == 'text') {
-        //echo "ici";
-        $_SESSION['form'][$name] = CheckText($name, $value, $_SESSION['formErrors'], true, $_SESSION['formError']);
-        //echo CheckText($name, $value, $_SESSION['formErrors'], true, $_SESSION['formError']);
-    } elseif ($_SESSION['formTypes'][$name] == 'multipleChoice') {
-        $values = $name . "Values"; //Cette ligne crée le nom de la variable qui contient les valeurs
-        $_SESSION['form'][$name] = CheckMultipleChoice($name, $value, $_SESSION['formErrors'], true, $_SESSION['formError'], $$values);
-    } elseif ($_SESSION['formTypes'][$name] == 'checkbox') {
-        //echo "coucou1";
-        $values = $name . "Values"; //Cette ligne crée le nom de la variable qui contient les valeurs
-        $_SESSION['form'][$name] = CheckCheckbox($name, $value, $_SESSION['formErrors'], true, $_SESSION['formError'], $$values, $chkName);
-    }
-    //die();
-}
-if(!isset($_POST[$rdbName])){
-    $_SESSION['formErrors'][$rdbName] = "You can't leave it empty";
-}
-if(!isset($_POST[$_SESSION[$chkName]])){
-    echo "coucou2";
-    $_SESSION['formErrors'][$_SESSION[$chkName]] = "You can't leave it empty";
-}
-*/
+  foreach ($_POST as $name => $value) {
+  //echo"HELLO!";
+  //debug($_POST, "POST:");
+  //debug($_SESSION, "SESSION:");
+  if ($_SESSION['formTypes'][$name] == 'text') {
+  //echo "ici";
+  $_SESSION['form'][$name] = CheckText($name, $value, $_SESSION['formErrors'], true, $_SESSION['formError']);
+  //echo CheckText($name, $value, $_SESSION['formErrors'], true, $_SESSION['formError']);
+  } elseif ($_SESSION['formTypes'][$name] == 'multipleChoice') {
+  $values = $name . "Values"; //Cette ligne crée le nom de la variable qui contient les valeurs
+  $_SESSION['form'][$name] = CheckMultipleChoice($name, $value, $_SESSION['formErrors'], true, $_SESSION['formError'], $$values);
+  } elseif ($_SESSION['formTypes'][$name] == 'checkbox') {
+  //echo "coucou1";
+  $values = $name . "Values"; //Cette ligne crée le nom de la variable qui contient les valeurs
+  $_SESSION['form'][$name] = CheckCheckbox($name, $value, $_SESSION['formErrors'], true, $_SESSION['formError'], $$values, $chkName);
+  }
+  //die();
+  }
+  if(!isset($_POST[$rdbName])){
+  $_SESSION['formErrors'][$rdbName] = "You can't leave it empty";
+  }
+  if(!isset($_POST[$_SESSION[$chkName]])){
+  echo "coucou2";
+  $_SESSION['formErrors'][$_SESSION[$chkName]] = "You can't leave it empty";
+  }
+ */
 debug($_POST, "POST:");
 debug($_SESSION, "SESSION:");
 

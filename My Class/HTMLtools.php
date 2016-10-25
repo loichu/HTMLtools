@@ -41,6 +41,7 @@ function CheckboxAndRadiobutton($frmName, $fieldType, $fieldLabel, $fieldName, $
 
     $_SESSION["forms"][$frmName][$fieldName] = array("type" => $fieldType, "label" => $fieldLabel, "name" => $fieldName, "values" => $fieldValues, "is_selected" => $isSelected, "is_required" => $isRequired);
     $_SESSION["forms"][$frmName][$fieldName]['errors'] = '';
+    $error = $_SESSION["forms"][$frmName][$fieldName]['errors'];
 
     $checkbox = "<tr>\n";
     $checkbox .= "\t<th>$fieldLabel :</th>\n";
@@ -51,12 +52,55 @@ function CheckboxAndRadiobutton($frmName, $fieldType, $fieldLabel, $fieldName, $
         $checkbox .= " />$text</label><br/>\n";
     }
     $checkbox .= "\t</td>\n";
-    $checkbox .= "\t<td><span class='erreur'>" . $_SESSION["forms"][$frmName][$fieldName]['errors'] . "</span></td>\n";
+    $checkbox .= "\t<td><span class='erreur'>" . $error . "</span></td>\n";
     $checkbox .= "</tr>\n";
 
     return $checkbox;
 }
+// Create select: FormName, Type, Label, Name (Unique!), array of value, array of selected items, is required
+function Select($frmName, $fieldType, $fieldLabel, $fieldName, $fieldValues, $isRequired = false) {
+    
+    $isSelected = isset($_SESSION['forms'][$frmName][$fieldName]['is_selected']) && count($_SESSION['forms'][$frmName][$fieldName]['is_selected']) ? $_SESSION['forms'][$frmName][$fieldName]['is_selected'] : array();
+    
+    $_SESSION["forms"][$frmName][$fieldName] = array("type" => $fieldType, "label" => $fieldLabel, "name" => $fieldName, "values" => $fieldValues, "is_selected" => $isSelected, "is_required" => $isRequired);
+    $_SESSION["forms"][$frmName][$fieldName]['errors'] = '';
+    $error = $_SESSION["forms"][$frmName][$fieldName]['errors'];
+    
+    $select = "<tr>\n";
+    $select .= "\t<th><label for='$fieldName'>$fieldLabel</label></th>\n";
+    $select .= "\t<td>\n";
+    $select .= "\t\t<select name='$fieldName'>\n";
+    $select .= "\t\t\t<option></option>";
+    foreach ($fieldValues as $value => $displayed) {
+        $select .= "\t\t\t<option value='$value'";
+        $select .= ($_SESSION["forms"][$frmName][$fieldName]['is_selected'] == $value) ? ' selected="selected"' : "";
+        $select .= ">$displayed</option>\n";
+    }
+    $select .= "\t\t</select>\n\t</td>\n";
+    $select .= "\t<td><span class='erreur'>" . $error . "</span></td>\n";
+    $select .= "</tr>\n";
+    
+    return $select;
+}
 
+// Create select: FormName, Type, Label, Name (Unique!),  is required
+function Password($frmName, $fieldType, $fieldLabel, $fieldName, $isRequired = false) {
+    
+    $value = isset($_SESSION['forms'][$frmName][$fieldName]['value']) ? $_SESSION['forms'][$frmName][$fieldName]['value'] : array();
+    
+    $_SESSION["forms"][$frmName][$fieldName] = array("type" => $fieldType, "label" => $fieldLabel, "name" => $fieldName, "is_required" => $isRequired);
+    $_SESSION["forms"][$frmName][$fieldName]['errors'] = '';    
+    $error = $_SESSION["forms"][$frmName][$fieldName]['errors'];
+    $value = isset($_SESSION["forms"][$frmName][$fieldName]['value']) ? $_SESSION["forms"][$frmName][$fieldName]['value'] : "";
+
+    $password = "<tr>\n";
+    $password .= "\t<th><label for='$fieldName'>$fieldLabel</label></th>\n";
+    $password .= "\t<td><input type='password' name='$fieldName' value='$value' /></td>\n";
+    $password .= "\t<td><span class='erreur'>" . $error . "</span></td>\n";
+    $password .= "</tr>\n";
+    
+    return $password;
+}
 /*function Radiobutton2($frmName, $fieldType, $fieldLabel, $fieldName, $fieldValues, $isRequired = false){
     $isSelected = isset($_SESSION['forms'][$frmName][$fieldName]['is_selected']) && count($_SESSION['forms'][$frmName][$fieldName]['is_selected']) ? $_SESSION['forms'][$frmName][$fieldName]['is_selected'] : array();
 
@@ -83,7 +127,7 @@ function CheckboxAndRadiobutton($frmName, $fieldType, $fieldLabel, $fieldName, $
  * @param string $name Le nom des boutons radio
  * @param array $values Un tableau qui contient valeur => texte affiché
  * @param string $checked La valeur qui doit être cochée (optionnel)
- */
+ *
 function Radiobutton($label = "", $name = "", $values = array(), $checked = "", &$type) {
     $error = isset($_SESSION['formErrors'][$name]) ? $_SESSION['formErrors'][$name] : "";
     $type[$name] = "multipleChoice";
@@ -99,7 +143,7 @@ function Radiobutton($label = "", $name = "", $values = array(), $checked = "", 
     $radiobutton .= "\t<td><span class='erreur'>" . $error . "</span></td>\n";
     $radiobutton .= "</tr>\n";
     return $radiobutton;
-}
+}*/
 
 /**
  * Cette fonction permet de générer une barre de sélection
@@ -108,7 +152,7 @@ function Radiobutton($label = "", $name = "", $values = array(), $checked = "", 
  * @param array $values Un tableau qui contient valeur => texte affiché
  * @param string $selected La valeur qui doit être sélectionnée (optionnel)
  */
-function Select($label = "", $name = "", $values = array(), $selected = "", &$type) {
+function Select_Bckp($label = "", $name = "", $values = array(), $selected = "", &$type) {
     $error = isset($_SESSION['formErrors'][$name]) ? $_SESSION['formErrors'][$name] : "";
     $type[$name] = "multipleChoice";
     $select = "<tr>\n";
@@ -133,7 +177,7 @@ function Select($label = "", $name = "", $values = array(), $selected = "", &$ty
  * @param string $name Le nom du champ mot de passe
  * @param string $value Le texte inscrit dans le champ
  */
-function Password($label = "", $name = "", $value = "", &$type) {
+function Password_Bckp($label = "", $name = "", $value = "", &$type) {
     $error = isset($_SESSION['formErrors'][$name]) ? $_SESSION['formErrors'][$name] : "";
     $type[$name] = "password";
     $password = "<tr>\n";

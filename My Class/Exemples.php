@@ -36,6 +36,18 @@ include 'values.php';
                 $rdbLabel = "Radiobutton";
                 $rdbName = "rdb";
                 echo CheckboxAndRadiobutton($formName, $rdbType, $rdbLabel, $rdbName, $rdbValues, true);
+                
+                // Create select: FormName, Type, Label, Name (Unique!), array of value, is required
+                $sctType = "select";
+                $sctLabel = "Select";
+                $sctName = "sct";
+                echo Select($formName, $sctType, $sctLabel, $sctName, $sctValues, true);
+                
+                // Create select: FormName, Type, Label, Name (Unique!), array of value, is required
+                $pwdType = "password";
+                $pwdLabel = "Password";
+                $pwdName = "pwd";
+                echo Password($formName, $pwdType, $pwdLabel, $pwdName, true);
 
 /*
                 //Exemple de radiobutton
