@@ -8,8 +8,9 @@
 
 // Values
 $chkValues = array(
-    'test' => 'this is a test',
-    'test2' => 'another test but not checked'
+    'test1' => 'this is a test',
+    'test2' => 'another test but not checked',
+    'test3' => 'another test - 3',
 );
 
 $rdbValues = array(

@@ -2,7 +2,7 @@
 
 /**
  * Cette classe contient des fonctions utiles pour dynamiser de l'html.
- * 
+ *
  * @author Loïc Humbert
  */
 
@@ -15,7 +15,8 @@ session_start();
  * @param array $values Un tableau qui contient valeur => texte affiché
  * @param array $checked Liste des valeurs qui doivent être cochée (optionnel)
  */
-function Checkbox($label = "", $overallName = "", $values = array(), $checked = array(), &$type) {
+function Checkbox($frmName = "", $label = "", $overallName = "", $values = array(), $checked = array(), &$type) {
+    $_SESSION["forms"][$frmName] = array("type" => "checkbox");
     $name = $_SESSION["$overallName"] . "[]";
     $error = isset($_SESSION['formErrors'][$_SESSION[$overallName]]) ? $_SESSION['formErrors'][$_SESSION[$overallName]] : "";
     $type[$_SESSION[$overallName]] = "checkbox";
@@ -24,7 +25,7 @@ function Checkbox($label = "", $overallName = "", $values = array(), $checked = 
     $checkbox .= "\t<td>\n";
     foreach ($values as $value => $displayed) {
         $checkbox .= "\t\t<label><input type='checkbox' name='$name' value='$value'";
-        $checkbox .= is_int(array_search($value, $checked)) ? 'checked="checked"' : "";
+        $checkbox .= (is_array($checked) && is_int(array_search($value, $checked))) ? 'checked="checked"' : "";
         $checkbox .= " />$displayed</label><br/>\n";
     }
     $checkbox .= "\t</td>\n";
@@ -33,9 +34,32 @@ function Checkbox($label = "", $overallName = "", $values = array(), $checked = 
     $checkbox .= "</tr>\n";
     return $checkbox;
 }
+// Create checkbox: FormName, Type, Label, Name (Unique!), array of value, array of selected items, is required
+function Checkbox2($frmName, $fieldType, $fieldLabel, $fieldName, $fieldValues, $isRequired = false) {
+
+    $isSelected = isset($_SESSION['forms'][$frmName][$fieldName]['is_selected']) && count($_SESSION['forms'][$frmName][$fieldName]['is_selected']) ? $_SESSION['forms'][$frmName][$fieldName]['is_selected'] : array();
+
+    $_SESSION["forms"][$frmName][$fieldName] = array("type" => $fieldType, "label" => $fieldLabel, "name" => $fieldName, "values" => $fieldValues, "is_selected" => $isSelected, "is_required" => $isRequired);
+    $_SESSION["forms"][$frmName][$fieldName]['errors'] = '';
+
+    $checkbox = "<tr>\n";
+    $checkbox .= "\t<th>$fieldLabel:</th>\n";
+    $checkbox .= "\t<td>\n";
+    foreach ($fieldValues as $value => $text) {
+        $checkbox .= "\t\t<label><input type='$fieldType' name='$fieldName' value='$value'";
+        $checkbox .= (is_array($isSelected) && is_int(array_search($value, $isSelected))) ? 'checked="checked"' : "";
+        $checkbox .= " />$text</label><br/>\n";
+    }
+    $checkbox .= "\t</td>\n";
+    $checkbox .= "\t<td><span class='erreur'>" . $_SESSION["forms"][$frmName][$fieldName]['errors'] . "</span></td>\n";
+    $checkbox .= "</tr>\n";
+
+    return $checkbox;
+}
+
 
 /**
- * Cette fonction permet de générer des boutons radios 
+ * Cette fonction permet de générer des boutons radios
  * @param string $label L'étiquette qui correspond
  * @param string $name Le nom des boutons radio
  * @param array $values Un tableau qui contient valeur => texte affiché
@@ -167,5 +191,3 @@ function debug($d, $note = null) {
 }
 
 ?>
-    
-
