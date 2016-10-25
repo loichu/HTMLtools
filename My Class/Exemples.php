@@ -18,6 +18,7 @@ include 'values.php';
         <form method="post" action="CheckForm.php" name="form1">
             <table border="1">
                 <?php
+                $formName = "form1";
                 //Exemple de checkbox
                 //$chkLabel = 'Checkbox :';
                 // Le nom se définit dans values.php
@@ -25,7 +26,16 @@ include 'values.php';
                 //echo Checkbox($frm1, $chkLabel, $chkName, $chkValues, $chkChecked, $_SESSION['formTypes']);
 
                 // Create checkbox: FormName, Type, Label, Name (Unique!), array of value, is required
-                echo Checkbox2("form1", "checkbox", "Checkbox", "checkbox[]", $chkValues, false);
+                $chkType = "checkbox";
+                $chkLabel = "Checkbox";
+                $chkName = "checkbox[]";
+                echo CheckboxAndRadiobutton($formName, $chkType, $chkLabel, $chkName, $chkValues, true);
+                
+                // Create radiobutton: FormName, Type, Label, Name (Unique!), array of value, is required
+                $rdbType = "radio";
+                $rdbLabel = "Radiobutton";
+                $rdbName = "rdb";
+                echo CheckboxAndRadiobutton($formName, $rdbType, $rdbLabel, $rdbName, $rdbValues, true);
 
 /*
                 //Exemple de radiobutton

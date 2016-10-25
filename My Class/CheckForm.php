@@ -22,7 +22,7 @@ function CheckText($name, $text, &$errors, $required = false, &$error) {
     return $text;
 }
 
-function CheckMultipleChoice($name, $value, &$errors, $required = false, &$error, $values) {
+function CheckMultipleChoice_Bckp($name, $value, &$errors, $required = false, &$error, $values) {
     if ((str_replace(" ", "", $value)) != "" && array_key_exists($value, $values)) {
         $errors[$name] = "";
         $text = $value;
@@ -36,7 +36,11 @@ function CheckMultipleChoice($name, $value, &$errors, $required = false, &$error
     return $text;
 }
 
-function CheckCheckbox($name, $value, &$errors, $required = false, &$error, $values, $chkName) {
+function CheckMultipleChoice($name, $value, &$errors, $required = false, &$error, $values) {
+    
+}
+
+/*function CheckCheckbox($name, $value, &$errors, $required = false, &$error, $values, $chkName) {
     foreach ($value as $index => $value) {
         if ((str_replace(" ", "", $value)) != "" && array_key_exists($value, $values)) {
             $errors[$_SESSION[$chkName]] = "";
@@ -50,9 +54,9 @@ function CheckCheckbox($name, $value, &$errors, $required = false, &$error, $val
         }
     }
     return $checked;
-}
+}*/
 
-function CheckCheckbox2($formName, $frmEntry, $frmCaracteristic, $post) {
+function CheckCheckbox($formName, $frmEntry, $frmCaracteristic, $post) {
     // initialise le tableau des erreurs
     $_SESSION['forms'][$formName][$frmEntry]['errors'] = array();
     // Probleme de checkbox, le nom à des [] mais pas le post !!!
@@ -87,8 +91,10 @@ foreach ($_SESSION['forms'] as $formName => $formEntry) {
 
         switch ($frmEntryValues['type']) {
         case 'checkbox':
-            CheckCheckbox2($formName, $frmEntry, $frmEntryValues, $_POST);
+            CheckCheckbox($formName, $frmEntry, $frmEntryValues, $_POST);
             break;
+        case 'radio':
+            
         default:
             echo "Je ne connais pas (encore) ce type de champs";
             break;
