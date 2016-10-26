@@ -1,165 +1,234 @@
 <?php
 
-include 'values.php'; // contient les tableaux de valeurs pour les champs multiplechoice
-include 'HTMLtools.php';
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * Ce fichier contrôle un formulaire créé à l'aide de HTMLtools.php
  */
+include "SessionTools.php";
+include "HTMLtools.php";
 
-function CheckText($name, $text, &$errors, $required = false, &$error) {
-    if ((str_replace(" ", "", $text)) != "") {
-        $text = trim(filter_input(INPUT_POST, $name, FILTER_SANITIZE_SPECIAL_CHARS));
-        $errors[$name] = "";
-    } else {
-        $text = "";
-        if ($required) {
-            $errors[$name] = "You can't leave it empty";
-            $error = true;
-        }
-    }
-    return $text;
-}
-
-function CheckMultipleChoice_Bckp($name, $value, &$errors, $required = false, &$error, $values) {
-    if ((str_replace(" ", "", $value)) != "" && array_key_exists($value, $values)) {
-        $errors[$name] = "";
-        $text = $value;
-    } else {
-        $text = "";
-        if ($required) {
-            $errors[$name] = "You can't leave it empty";
-            $error = true;
-        }
-    }
-    return $text;
-}
-
-
-/* function CheckCheckbox($name, $value, &$errors, $required = false, &$error, $values, $chkName) {
-  foreach ($value as $index => $value) {
-  if ((str_replace(" ", "", $value)) != "" && array_key_exists($value, $values)) {
-  $errors[$_SESSION[$chkName]] = "";
-  $checked[$index] = $value;
-  }
-  }
-  if (empty($checked)) {
-  if ($required) {
-  $errors[$_SESSION[$chkName]] = "You can't leave it empty";
-  $error = true;
-  }
-  }
-  return $checked;
-  } */
-
-function CheckCheckbox($formName, $frmEntry, $post) {
-    // initialise le tableau des erreurs
+/**
+ * 
+ * @param type $formName
+ * @param type $frmEntry
+ * @param type $post
+ */
+function CheckText($formName, $frmEntry, $post) {
+    // Initialise le tableau des erreurs
     $_SESSION['forms'][$formName][$frmEntry]['errors'] = array();
+
+    // Retrouve la valeur postée
+    $_SESSION['forms'][$formName][$frmEntry]['posted_data'] = trim(filter_var($post[$frmEntry], FILTER_SANITIZE_SPECIAL_CHARS));
+
+    // Stock la valeur si elle est remplie sinon message d'erreur
+    if (!empty($_SESSION['forms'][$formName][$frmEntry]['posted_data'])) {
+        $_SESSION['forms'][$formName][$frmEntry]['value'] = $_SESSION['forms'][$formName][$frmEntry]['posted_data'];
+    } elseif ($_SESSION['forms'][$formName][$frmEntry]['is_required']) {
+        $_SESSION['forms'][$formName][$frmEntry]['errors'][] = "Please enter a " . strtolower($_SESSION['forms'][$formName][$frmEntry]['label'] . "...");
+        $_SESSION['forms'][$formName]['error'] = true;
+    }
+}
+
+/**
+ * 
+ * @param type $formName
+ * @param type $frmEntry
+ * @param type $post
+ */
+function CheckEmail($formName, $frmEntry, $post) {
+    // Initialise le tableau des erreurs
+    $_SESSION['forms'][$formName][$frmEntry]['errors'] = array();
+
+    // Retrouve la valeur postée
+    $_SESSION['forms'][$formName][$frmEntry]['posted_data'] = trim(filter_var($post[$frmEntry], FILTER_VALIDATE_EMAIL));
+    
+    // Stock la valeur si elle est remplie sinon message d'erreur
+    if ($_SESSION['forms'][$formName][$frmEntry]['posted_data']) {
+        $_SESSION['forms'][$formName][$frmEntry]['value'] = $_SESSION['forms'][$formName][$frmEntry]['posted_data'];
+    } elseif ($_SESSION['forms'][$formName][$frmEntry]['is_required']) {
+        $_SESSION['forms'][$formName][$frmEntry]['errors'][] = "Please enter a valid " . strtolower($_SESSION['forms'][$formName][$frmEntry]['label'] . "...");
+        $_SESSION['forms'][$formName]['error'] = true;
+    }
+}
+
+/**
+ * 
+ * @param type $formName
+ * @param type $frmEntry
+ * @param type $post
+ */
+function CheckPassword($formName, $frmEntry, $post) {
+    // Initialise le tableau des erreurs et l'indicateur d'erreur interne.
+    $_SESSION['forms'][$formName][$frmEntry]['errors'] = array();
+    $error = false;
+
+    // Retrouve la valeur postée
+    $_SESSION['forms'][$formName][$frmEntry]['posted_data'] = trim(filter_var($post[$frmEntry], FILTER_SANITIZE_SPECIAL_CHARS));
+
+    // Si il s'agit d'une confirmation contrôler qu'il correspond au mot de passe. 
+    // Sinon contrôler au moins 8 caractères dont au moins 1 chiffre et 1 lettre.
+    // Messages d'erreur
+    if ($_SESSION['forms'][$formName][$frmEntry]['is_confirm']) {
+        $password = str_replace("Confirm", "", $frmEntry);
+        if ($_SESSION['forms'][$formName][$password]['posted_data'] != $_SESSION['forms'][$formName][$frmEntry]['posted_data']) {
+            $_SESSION['forms'][$formName][$frmEntry]['errors'][] = "The password must be the same as " . strtolower($_SESSION['forms'][$formName][$password]['label']) . "...";
+            $error = true;
+        }
+    } else {
+        if (strlen($_SESSION['forms'][$formName][$frmEntry]['posted_data']) < 8) {
+            $_SESSION['forms'][$formName][$frmEntry]['errors'][] = "The password must contain at least 8 characters...";
+            $error = true;
+        }
+        if (!preg_match("#[0-9]+#", $_SESSION['forms'][$formName][$frmEntry]['posted_data'])) {
+            $_SESSION['forms'][$formName][$frmEntry]['errors'][] = "The password must contain at least 1 number...";
+            $error = true;
+        }
+        if (!preg_match("#[a-zA-Z]+#", $_SESSION['forms'][$formName][$frmEntry]['posted_data'])) {
+            $_SESSION['forms'][$formName][$frmEntry]['errors'][] = "The password must contain at least 1 letter...";
+            $error = true;
+        }
+        if (!$_SESSION['forms'][$formName][$frmEntry]['is_required']) {
+            $_SESSION['forms'][$formName][$frmEntry]['errors'][] = "No password is required, you can leave it empty...";
+        }
+    }
+
+    // Si les conditions sont remplies stocker la valeur
+    if (!$error) {
+        if(!$_SESSION['forms'][$formName][$frmEntry]['is_confirm']){
+            $_SESSION['forms'][$formName][$frmEntry]['value'] = $_SESSION['forms'][$formName][$frmEntry]['posted_data'];
+        }     
+    } elseif ($_SESSION['forms'][$formName][$frmEntry]['is_required']) {
+        $_SESSION['forms'][$formName]['error'] = true;
+    }
+}
+
+/**
+ * 
+ * @param type $formName
+ * @param type $frmEntry
+ * @param type $post
+ */
+function CheckCheckbox($formName, $frmEntry, $post) {
+    // Initialise le tableau des erreurs
+    $_SESSION['forms'][$formName][$frmEntry]['errors'] = array();
+    
+    // Initialise le tableau des valeurs
+    $_SESSION['forms'][$formName][$frmEntry]['is_selected'] = array();
+
     // Probleme de checkbox, le nom à des [] mais pas le post !!!
     $frmEntryPostName = substr($frmEntry, 0, -2);
-    $_SESSION['forms'][$formName][$frmEntry]['posted_data'] = array();
-    $_SESSION['forms'][$formName][$frmEntry]['posted_data'] = $post[$frmEntryPostName];
 
-    // check that posted values are set
-    if (count($post[$frmEntryPostName])) {
+    // Retrouve les valeures postées
+    $_SESSION['forms'][$formName][$frmEntry]['posted_data'] = isset($post[$frmEntryPostName]) ? $post[$frmEntryPostName] : array();
+
+    // Si les valeurs existent, la stocker. Sinon message d'erreur.
+    if (isset($post[$frmEntryPostName])) {
         foreach ($post[$frmEntryPostName] as $value) {
             if (!array_key_exists($value, $_SESSION['forms'][$formName][$frmEntry]['values'])) {
                 $_SESSION['forms'][$formName][$frmEntry]['errors'][] = "This value doesn't exists !";
+                $_SESSION['forms'][$formName]['error'] = true;
+                //echo "I am $frmEntry";
             } else {
                 $_SESSION['forms'][$formName][$frmEntry]['is_selected'][] = $value;
             }
         }
     }
-    if (!count($post[$frmEntryPostName]) && $_SESSION['forms'][$formName][$frmEntry]['is_required']) {
+
+    // Si aucune valeur n'a été postée message d'erreur
+    if (!isset($post[$frmEntryPostName]) && $_SESSION['forms'][$formName][$frmEntry]['is_required']) {
         $_SESSION['forms'][$formName][$frmEntry]['errors'][] = "Please select at least one value for " . strtolower($_SESSION['forms'][$formName][$frmEntry]['label'] . "...");
+        $_SESSION['forms'][$formName]['error'] = true;
+        //echo "I am $frmEntry";
     }
 }
 
+/**
+ * 
+ * @param type $formName
+ * @param type $frmEntry
+ * @param type $post
+ */
 function CheckMultipleChoice($formName, $frmEntry, $post) {
-    // initialise le tableau des erreurs
+    // Initialise le tableau des erreurs
     $_SESSION['forms'][$formName][$frmEntry]['errors'] = array();
-    $_SESSION['forms'][$formName][$frmEntry]['posted_data'] = array();
-    $_SESSION['forms'][$formName][$frmEntry]['posted_data'] = $post[$frmEntry];
+    
+    // Initialise le tableau des valeurs
+    $_SESSION['forms'][$formName][$frmEntry]['is_selected'] = "";
 
-    // check that posted values are set
-    if (count($post[$frmEntry])) {
+    // Retrouve la valeur postée
+    $_SESSION['forms'][$formName][$frmEntry]['posted_data'] = isset($post[$frmEntry]) ? $post[$frmEntry] : "";
+    $value = $_SESSION['forms'][$formName][$frmEntry]['posted_data'];
+
+    // Si la valeur existe, la stocker. Sinon message d'erreur.
+    if (isset($post[$frmEntry])) {
         if (!array_key_exists($value, $_SESSION['forms'][$formName][$frmEntry]['values'])) {
             $_SESSION['forms'][$formName][$frmEntry]['errors'][] = "This value doesn't exists !";
-        } else {
-            $_SESSION['forms'][$formName][$frmEntry]['is_selected'][] = $value;
+            $_SESSION['forms'][$formName]['error'] = true;
+            //echo "I am $frmEntry";
+        } elseif ($value != "default") {
+            $_SESSION['forms'][$formName][$frmEntry]['is_selected'] = $value;
         }
     }
-    if (!count($post[$frmEntry]) && $_SESSION['forms'][$formName][$frmEntry]['is_required']) {
+
+    // Si aucune valeur n'a été postée message d'erreur
+    if (!isset($post[$frmEntry]) && $_SESSION['forms'][$formName][$frmEntry]['is_required'] || $value == "default") {
         $_SESSION['forms'][$formName][$frmEntry]['errors'][] = "Please select a value for " . strtolower($_SESSION['forms'][$formName][$frmEntry]['label'] . "...");
+        $_SESSION['forms'][$formName]['error'] = true;
+        //echo "I am $frmEntry";
     }
 }
 
-/* $_SESSION['form'] = array();
-  $checkboxName = $_SESSION[$chkName] . "[]" ;
+/**
+ * 1) Initialiser détecteur d'erreur à false pour chaque formulaire.
+ * 2) Contrôler chaque champ de chaque formulaire selon le type du champ.
+ * 3) Rediriger selon le détecteur d'erreur.
  */
 foreach ($_SESSION['forms'] as $formName => $formEntry) {
+    $_SESSION['forms'][$formName]['error'] = false;
     foreach ($formEntry as $frmEntry => $frmEntryValues) {
-        echo "<pre>";
-        print $frmEntry;
-        print_r($frmEntryValues);
-        echo "</pre>";
-
-        switch ($frmEntryValues['type']) {
-            case 'checkbox':
-                CheckCheckbox($formName, $frmEntry, $_POST);
-                break;
-            case 'radio':
-                CheckMultipleChoice($formName, $frmEntry, $_POST);
-                break;
-            case 'select':
-                CheckMultipleChoice($formName, $frmEntry, $_POST);
-            default:
-                echo "Je ne connais pas (encore) ce type de champs";
-                break;
+        //echo "I am $frmEntry and error is :" . $_SESSION['forms'][$formName]['error'] . "<br/>";
+        /* echo "<pre>";
+          print $frmEntry;
+          print_r($frmEntryValues);
+          echo "</pre>"; */
+        if ($frmEntry != "error") {
+            switch ($frmEntryValues['type']) {
+                case 'checkbox':
+                    CheckCheckbox($formName, $frmEntry, $_POST);
+                    echo "I am $frmEntry and error is :" . $_SESSION['forms'][$formName]['error'] . "<br/>";
+                    break;
+                case 'radio':
+                    CheckMultipleChoice($formName, $frmEntry, $_POST);
+                    echo "I am $frmEntry and error is :" . $_SESSION['forms'][$formName]['error'] . "<br/>";
+                    break;
+                case 'select':
+                    CheckMultipleChoice($formName, $frmEntry, $_POST);
+                    echo "I am $frmEntry and error is :" . $_SESSION['forms'][$formName]['error'] . "<br/>";
+                    break;
+                case 'text':
+                    CheckText($formName, $frmEntry, $_POST);
+                    echo "I am $frmEntry and error is :" . $_SESSION['forms'][$formName]['error'] . "<br/>";
+                    break;
+                case 'password':
+                    CheckPassword($formName, $frmEntry, $_POST);
+                    echo "I am $frmEntry and error is :" . $_SESSION['forms'][$formName]['error'] . "<br/>";
+                    break;
+                case 'submit':
+                    echo "I am $frmEntry and error is :" . $_SESSION['forms'][$formName]['error'] . "<br/>";
+                    break;
+                case 'email':
+                    CheckEmail($formName, $frmEntry, $_POST);
+                    echo "I am $frmEntry and error is :" . $_SESSION['forms'][$formName]['error'] . "<br/>";
+                    break;
+                default:
+                    echo "Je ne connais pas (encore) ce type de champs ($frmEntry)";
+                    break;
+            }
         }
     }
+    $report = $_SESSION['forms'][$formName]['error'] == true ? "Il y a une faute quelque part dans $formName !" : "Tout juste pour $formName !";
+    echo $report;
 }
-/*
-  foreach ($_POST as $name => $value) {
-  //echo"HELLO!";
-  //debug($_POST, "POST:");
-  //debug($_SESSION, "SESSION:");
-  if ($_SESSION['formTypes'][$name] == 'text') {
-  //echo "ici";
-  $_SESSION['form'][$name] = CheckText($name, $value, $_SESSION['formErrors'], true, $_SESSION['formError']);
-  //echo CheckText($name, $value, $_SESSION['formErrors'], true, $_SESSION['formError']);
-  } elseif ($_SESSION['formTypes'][$name] == 'multipleChoice') {
-  $values = $name . "Values"; //Cette ligne crée le nom de la variable qui contient les valeurs
-  $_SESSION['form'][$name] = CheckMultipleChoice($name, $value, $_SESSION['formErrors'], true, $_SESSION['formError'], $$values);
-  } elseif ($_SESSION['formTypes'][$name] == 'checkbox') {
-  //echo "coucou1";
-  $values = $name . "Values"; //Cette ligne crée le nom de la variable qui contient les valeurs
-  $_SESSION['form'][$name] = CheckCheckbox($name, $value, $_SESSION['formErrors'], true, $_SESSION['formError'], $$values, $chkName);
-  }
-  //die();
-  }
-  if(!isset($_POST[$rdbName])){
-  $_SESSION['formErrors'][$rdbName] = "You can't leave it empty";
-  }
-  if(!isset($_POST[$_SESSION[$chkName]])){
-  echo "coucou2";
-  $_SESSION['formErrors'][$_SESSION[$chkName]] = "You can't leave it empty";
-  }
- */
+
+// Debug
 debug($_POST, "POST:");
 debug($_SESSION, "SESSION:");
-
-/*
-if ($_SESSION['formError'] == true) {
-    echo '$_SESSION[formError] = true';
-    debug($_POST, "POST:");
-    debug($_SESSION, "SESSION:");
-    //header('Location:Exemples.php');
-} else {
-    echo '$_SESSION[formError] = false';
-    debug($_POST, "POST:");
-    debug($_SESSION, "SESSION:");
-    //echo "ici";
-    //header('Location:Test.php');
-}*/
