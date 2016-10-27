@@ -1,24 +1,23 @@
 <?php
-// Create checkbox: FormName, Type, Label, Name (Unique!), array of value, array of selected items, is required
 /**
- * 
- * @param type $frmName
- * @param type $fieldType
- * @param type $fieldLabel
- * @param type $fieldName
- * @param type $fieldValues
- * @param type $isRequired
- * @return string
+ * Cette fonction sert à créer des radioboutons ou cases à cocher.
+ * @param string $frmName Nom du formulaire
+ * @param string $fieldType Type du champ
+ * @param string $fieldLabel Étiquette du champ
+ * @param string $fieldName Nom du champ
+ * @param array $fieldValues Valeurs disponibles pour le champ
+ * @param bool $isRequired Si le champ est requis
+ * @return string Les cases à cocher ou radioboutons (echo pour l'afficher).
  */
+// Create checkbox: FormName, Type, Label, Name (Unique!), array of value, array of selected items, is required
 function CheckboxOrRadiobutton($frmName, $fieldType, $fieldLabel, $fieldName, $fieldValues, $isRequired = false) {
-    //var_dump($_SESSION["forms"][$frmName][$fieldName]['errors']);
-
+    // Regarde s'il y a déjà une valeur sélectionnée.
     $isSelected = isset($_SESSION['forms'][$frmName][$fieldName]['is_selected']) && count($_SESSION['forms'][$frmName][$fieldName]['is_selected']) ? $_SESSION['forms'][$frmName][$fieldName]['is_selected'] : array();
-
+    // Regarde s'il y a des erreurs à afficher.
     $errors = isset($_SESSION["forms"][$frmName][$fieldName]['errors']) ? $_SESSION["forms"][$frmName][$fieldName]['errors'] : array();
-
+    // Crée le tableau dans la session.
     $_SESSION["forms"][$frmName][$fieldName] = array("type" => $fieldType, "label" => $fieldLabel, "name" => $fieldName, "values" => $fieldValues, "is_selected" => $isSelected, "is_required" => $isRequired, "errors" => $errors);
-
+    // Construit la checkbox ou radiobuttons.
     $field = "<tr>\n";
     $field .= "\t<th>$fieldLabel :</th>\n";
     $field .= "\t<td>\n";
@@ -32,36 +31,35 @@ function CheckboxOrRadiobutton($frmName, $fieldType, $fieldLabel, $fieldName, $f
         $field .= " />$text</label><br/>\n";
     }
     $field .= "\t</td>\n";
-
+    // Affiche les erreurs.
     $field .= "\t<td><ul>\n";
     foreach ($errors as $error) {
         $field .= "\t\t<li><span class='erreur'>" . $error . "</span></li>\n";
     }
     $field .= "\t</ul></td>\n";
-
     $field .= "</tr>\n";
-
+    // Retourne le champ
     return $field;
 }
 
-// Create select: FormName, Type, Label, Name (Unique!), array of value, array of selected items, is required
 /**
- * 
- * @param type $frmName
- * @param type $fieldLabel
- * @param type $fieldName
- * @param type $fieldValues
- * @param type $isRequired
- * @return string
+ * Cette fonction sert à créer une barre de sélection.
+ * @param string $frmName Nom du formulaire
+ * @param string $fieldLabel Étiquette du champ
+ * @param string $fieldName Nom du champ
+ * @param array $fieldValues Valeurs disponibles pour le champ
+ * @param bool $isRequired Si le champ est requis
+ * @return string La barre de sélection (echo pour l'afficher).
  */
+// Create select: FormName, Type, Label, Name (Unique!), array of value, array of selected items, is required
 function Select($frmName, $fieldLabel, $fieldName, $fieldValues, $isRequired = false) {
-
+    // Regarde s'il y a déjà une valeur sélectionnée.
     $isSelected = isset($_SESSION['forms'][$frmName][$fieldName]['is_selected']) && count($_SESSION['forms'][$frmName][$fieldName]['is_selected']) ? $_SESSION['forms'][$frmName][$fieldName]['is_selected'] : "";
-
+    // Regarde s'il y a des erreurs à afficher.
     $errors = isset($_SESSION["forms"][$frmName][$fieldName]['errors']) ? $_SESSION["forms"][$frmName][$fieldName]['errors'] : array();
-
+    // Crée le tableau dans la session.
     $_SESSION["forms"][$frmName][$fieldName] = array("type" => "select", "label" => $fieldLabel, "name" => $fieldName, "values" => $fieldValues, "is_selected" => $isSelected, "is_required" => $isRequired, "errors" => $errors);
-
+    // Construit la barre de sélection
     $select = "<tr>\n";
     $select .= "\t<th><label for='$fieldName'>$fieldLabel :</label></th>\n";
     $select .= "\t<td>\n";
@@ -73,53 +71,51 @@ function Select($frmName, $fieldLabel, $fieldName, $fieldValues, $isRequired = f
         $select .= ">$displayed</option>\n";
     }
     $select .= "\t\t</select>\n\t</td>\n";
-
+    // Affiche les erreurs.
     $select .= "\t<td><ul>\n";
     foreach ($errors as $error) {
         $select .= "\t\t<li><span class='erreur'>" . $error . "</span></li>\n";
     }
     $select .= "\t</ul></td>\n";
-
     $select .= "</tr>\n";
-
+    // Retourne le champ.
     return $select;
 }
 
-// Create password or text: FormName, Type, Label, Name (Unique!),  is required, is confirmation
 /**
- * 
- * @param type $frmName
- * @param type $fieldType
- * @param type $fieldLabel
- * @param string $fieldName
- * @param type $isRequired
- * @param type $isConfirm
- * @return string
+ * Cette fonction sert à créer un champ de type text, mot de passe ou email.
+ * @param string $frmName Nom du formulaire
+ * @param string $fieldType Type du champ (mot de passe, texte, ou email)
+ * @param string $fieldLabel Étiquette du champ
+ * @param string $fieldName Nom du champ
+ * @param bool $isRequired Si le champ est requis
+ * @param bool $isConfirm Si il s'agit d'une confirmation de mot de passe
+ * @return string Retourne le champ (echo pour l'afficher).
  */
+// Create password or text: FormName, Type, Label, Name (Unique!),  is required, is confirmation
 function PasswordOrTextOrEmail($frmName, $fieldType, $fieldLabel, $fieldName, $isRequired = false, $isConfirm = false) {
-
+    // Si il s'agit d'une confirmation de mot de passe mettre Confirm après le nom du champ.
     if ($isConfirm) {
         $fieldName .= "Confirm";
     }
-
+    // Regarde s'il y a déjà une valeur pour ce champ.
     $value = isset($_SESSION['forms'][$frmName][$fieldName]['value']) ? $_SESSION['forms'][$frmName][$fieldName]['value'] : "";
-
+    // Regarde s'il y a des erreurs à afficher.
     $errors = isset($_SESSION["forms"][$frmName][$fieldName]['errors']) ? $_SESSION["forms"][$frmName][$fieldName]['errors'] : array();
-
+    // Crée le tableau dans la session.
     $_SESSION["forms"][$frmName][$fieldName] = array("type" => $fieldType, "label" => $fieldLabel, "name" => $fieldName, "value" => $value, "is_required" => $isRequired, "errors" => $errors, "is_confirm" => $isConfirm);
-
+    // Construit le champ
     $field = "<tr>\n";
     $field .= "\t<th><label for='$fieldName'>$fieldLabel :</label></th>\n";
     $field .= "\t<td><input type='$fieldType' name='$fieldName' value='$value' /></td>\n";
-
+    // Affiche les erreurs
     $field .= "\t<td><ul>\n";
     foreach ($errors as $error) {
         $field .= "\t\t<li><span class='erreur'>" . $error . "</span></li>\n";
     }
     $field .= "\t</ul></td>\n";
-
     $field .= "</tr>\n";
-
+    // Retourne le champ (echo pour l'afficher)
     return $field;
 }
 
